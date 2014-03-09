@@ -1,0 +1,11 @@
+bin
+obj
+packages
+tools
+
+*.suo
+*.user
+
+_NCrunch*
+*.ncrunchsolution
+*.ncrunchproject
