@@ -8,7 +8,7 @@ TraceEnvironmentVariables()
 RestorePackages()
 
 if buildServer = BuildServer.AppVeyor then
-    MSBuildLoggers <- @"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" :: MSBuildLoggers
+    MSBuildLoggers <- @"""C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll""" :: MSBuildLoggers
 
 Target "Clean" (fun _ ->
     !! ("**/bin/**/*.*")
