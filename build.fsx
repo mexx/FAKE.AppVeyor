@@ -71,17 +71,12 @@ type AppVeyorTraceListener() =
             | StartMessage | FinishedMessage -> ()
             | ImportantMessage x -> add x Warning
             | ErrorMessage x -> add x Error
-            | LogMessage (x, _) | TraceMessage (x, _) -> add x Information
-            | OpenTag (_, _) | CloseTag _ -> ()
+            | LogMessage (x, _) -> add x Information
+            | TraceMessage (_, _) | OpenTag (_, _) | CloseTag _ -> ()
 
 listeners.Add(AppVeyorTraceListener())            
 
 Target "AppVeyor" (fun _ ->
-    let AppVeyor args =
-        ExecProcess (fun info -> 
-                    info.FileName <- "appveyor"
-                    info.Arguments <- args) (System.TimeSpan.MaxValue)
-    
     AddMessage { Message = "This is a message"; Category = None; Details = None }
     
     AddMessage { Message = "This is an info"; Category = Some Information; Details = Some "Some info details" }
