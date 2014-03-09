@@ -62,6 +62,20 @@ let AddMessage x =
         |> separated " "
     AppVeyor args |> ignore
 
+type AppVeyorTraceListener() =
+    let add msg category =
+        AddMessage { Message = msg; Category = Some category; Details = None }
+    interface ITraceListener with
+        member this.Write msg =
+            match msg with
+            | StartMessage | FinishedMessage -> ()
+            | ImportantMessage x -> add x Warning
+            | ErrorMessage x -> add x Error
+            | LogMessage (x, _) | TraceMessage (x, _) -> add x Information
+            | OpenTag (_, _) | CloseTag _ -> ()
+
+listeners.Add(AppVeyorTraceListener())            
+
 Target "AppVeyor" (fun _ ->
     let AppVeyor args =
         ExecProcess (fun info -> 
