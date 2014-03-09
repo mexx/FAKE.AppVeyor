@@ -28,11 +28,61 @@ Target "Test" (fun _ ->
                 XmlOutput = true;})
 )
 
+type Category =
+    | Information
+    | Warning
+    | Error
+
+/// AppVeyor build agent API message 
+type Message =
+    { /// The message
+      Message : string
+      /// The category of the message
+      Category : Category option
+      /// The details for this message
+      Details : string option }
+
+let AppVeyor args =
+    ExecProcess (fun info -> 
+                info.FileName <- "appveyor"
+                info.Arguments <- args) (System.TimeSpan.MaxValue)
+
+let AddMessage x =
+    let args =
+        seq {
+            yield "AddMessage"
+            yield quoteIfNeeded x.Message
+            let category = function
+                | Information -> "Information"
+                | Warning -> "Warning"
+                | Error -> "Error"
+            yield defaultArg (x.Category |> Option.map (category >> sprintf "-Category %s")) ""
+            yield defaultArg (x.Details |> Option.map (quoteIfNeeded >> sprintf "-Details %s")) ""
+        }
+        |> separated " "
+    AppVeyor args |> ignore
+
+Target "AppVeyor" (fun _ ->
+    let AppVeyor args =
+        ExecProcess (fun info -> 
+                    info.FileName <- "appveyor"
+                    info.Arguments <- args) (System.TimeSpan.MaxValue)
+    
+    AddMessage { Message = "This is a message"; Category = None; Details = None }
+    
+    AddMessage { Message = "This is an info"; Category = Some Information; Details = Some "Some info details" }
+    
+    AddMessage { Message = "This is a warning"; Category = Some Warning; Details = Some "Some warning details" }
+    
+    AddMessage { Message = "This is an error"; Category = Some Error; Details = Some "Some error details" }
+)
+
 Target "Default" DoNothing
 
 "Clean"
     ==> "BuildSolution"
     ==> "Test"
+    =?> ("AppVeyor", (buildServer = BuildServer.AppVeyor))
     ==> "Default"
 
 RunTargetOrDefault "Default"
