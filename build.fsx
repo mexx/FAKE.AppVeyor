@@ -3,6 +3,8 @@
 
 open Fake
 
+RestorePackages()
+
 Target "Clean" (fun _ ->
     !! ("**/bin/**/*.*")
     |> DeleteFiles
