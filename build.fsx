@@ -38,6 +38,10 @@ let private add msg category =
     sprintf "AddMessage %s -Category %s" msg category
     |> sendToAppVeyor
 
+let private addWithDetails msg category details =
+    sprintf "AddMessage %s -Category %s -Details %s" msg category details
+    |> sendToAppVeyor
+
 let private addNoCategory msg =
     sprintf "AddMessage %s" msg
     |> sendToAppVeyor
@@ -55,13 +59,13 @@ if buildServer = BuildServer.AppVeyor then
             | OpenTag (_, _) | CloseTag _ -> ()})
 
 Target "AppVeyor" (fun _ ->
-    AddMessage { Message = "This is a message"; Category = None; Details = None }
+    addNoCategory "This is a message"
     
-    AddMessage { Message = "This is an info"; Category = Some Information; Details = Some "Some info details" }
+    addWithDetails "This is an info" "Information" "Some info details"
     
-    AddMessage { Message = "This is a warning"; Category = Some Warning; Details = Some "Some warning details" }
+    addWithDetails "This is a warning" "Warning" "Some warning details"
     
-    AddMessage { Message = "This is an error"; Category = Some Error; Details = Some "Some error details" }
+    addWithDetails "This is an error" "Error" "Some error details"
 )
 
 Target "Default" DoNothing
