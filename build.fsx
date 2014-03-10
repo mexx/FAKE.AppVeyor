@@ -28,54 +28,31 @@ Target "Test" (fun _ ->
                 XmlOutput = true;})
 )
 
-type Category =
-    | Information
-    | Warning
-    | Error
-
-/// AppVeyor build agent API message 
-type Message =
-    { /// The message
-      Message : string
-      /// The category of the message
-      Category : Category option
-      /// The details for this message
-      Details : string option }
-
-let AppVeyor args =
+let private sendToAppVeyor args =
     ExecProcess (fun info -> 
                 info.FileName <- "appveyor"
                 info.Arguments <- args) (System.TimeSpan.MaxValue)
+    |> ignore
 
-let AddMessage x =
-    let args =
-        seq {
-            yield "AddMessage"
-            yield quoteIfNeeded x.Message
-            let category = function
-                | Information -> "Information"
-                | Warning -> "Warning"
-                | Error -> "Error"
-            yield defaultArg (x.Category |> Option.map (category >> sprintf "-Category %s")) ""
-            yield defaultArg (x.Details |> Option.map (quoteIfNeeded >> sprintf "-Details %s")) ""
-        }
-        |> separated " "
-    AppVeyor args |> ignore
+let private add msg category =
+    sprintf "AddMessage %s -Category %s" msg category
+    |> sendToAppVeyor
 
-type AppVeyorTraceListener() =
-    let add msg category =
-        AddMessage { Message = msg; Category = Some category; Details = None }
-    interface ITraceListener with
+let private addNoCategory msg =
+    sprintf "AddMessage %s" msg
+    |> sendToAppVeyor
+
+// Add trace listener to track messages
+if buildServer = BuildServer.AppVeyor then
+    listeners.Add({new ITraceListener with
         member this.Write msg =
             match msg with
-            | ErrorMessage x -> add x Error
-            | ImportantMessage x -> add x Warning
-            | LogMessage (x, _) -> add x Information
-            | TraceMessage (_, _)
+            | ErrorMessage x -> add x "Error"
+            | ImportantMessage x -> add x "Warning"
+            | LogMessage (x, _) -> add x "Information"
+            | TraceMessage (x, _) -> if not enableProcessTracing then addNoCategory x
             | StartMessage | FinishedMessage
-            | OpenTag (_, _) | CloseTag _ -> ()
-
-listeners.Add(AppVeyorTraceListener())            
+            | OpenTag (_, _) | CloseTag _ -> ()})
 
 Target "AppVeyor" (fun _ ->
     AddMessage { Message = "This is a message"; Category = None; Details = None }
