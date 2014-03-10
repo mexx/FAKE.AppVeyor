@@ -68,11 +68,12 @@ type AppVeyorTraceListener() =
     interface ITraceListener with
         member this.Write msg =
             match msg with
-            | StartMessage | FinishedMessage -> ()
-            | ImportantMessage x -> add x Warning
             | ErrorMessage x -> add x Error
+            | ImportantMessage x -> add x Warning
             | LogMessage (x, _) -> add x Information
-            | TraceMessage (_, _) | OpenTag (_, _) | CloseTag _ -> ()
+            | TraceMessage (_, _)
+            | StartMessage | FinishedMessage
+            | OpenTag (_, _) | CloseTag _ -> ()
 
 listeners.Add(AppVeyorTraceListener())            
 
