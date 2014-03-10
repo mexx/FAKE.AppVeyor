@@ -35,15 +35,15 @@ let private sendToAppVeyor args =
     |> ignore
 
 let private add msg category =
-    sprintf "AddMessage %s -Category %s" msg category
+    sprintf "AddMessage %s -Category %s" (quoteIfNeeded msg) (quoteIfNeeded category)
     |> sendToAppVeyor
 
 let private addWithDetails msg category details =
-    sprintf "AddMessage %s -Category %s -Details %s" msg category details
+    sprintf "AddMessage %s -Category %s -Details %s" (quoteIfNeeded msg) (quoteIfNeeded category) (quoteIfNeeded details)
     |> sendToAppVeyor
 
 let private addNoCategory msg =
-    sprintf "AddMessage %s" msg
+    sprintf "AddMessage %s" (quoteIfNeeded msg)
     |> sendToAppVeyor
 
 // Add trace listener to track messages
